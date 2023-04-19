@@ -41,9 +41,10 @@ pub fn clear_bss() {
         fn sbss();
         fn ebss();
     }
+    // sbss转化为usize，然后遍历sbss到ebss的地址空间
     (sbss as usize..ebss as usize).for_each(|a| 
         unsafe {
-            // 指针强转 覆写0，volatile保证可见性
+            // 地址强转为字节指针 覆写0，volatile保证可见性
             (a as *mut u8)
             .write_volatile(0) });
 }
