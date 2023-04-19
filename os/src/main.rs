@@ -34,6 +34,7 @@ mod board;
 global_asm!(include_str!("entry.asm"));
 
 /// clear BSS segment
+/// bss段是用来存放未初始化或者初始化为0的全局变量的
 pub fn clear_bss() {
     extern "C" {
         // 使用linker提供的标记点
