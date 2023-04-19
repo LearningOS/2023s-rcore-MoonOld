@@ -8,6 +8,11 @@ const SBI_CONSOLE_PUTCHAR: usize = 1;
 #[inline(always)]
 fn sbi_call(which: usize, arg0: usize, arg1: usize, arg2: usize) -> usize {
     let mut ret;
+    // 这一段汇编代码作用是将arg0,arg1,arg2,which传入x10,x11,x12,x17寄存器
+    // which是sbi调用的编号，arg0,arg1,arg2是传入的参数
+    // ecall指令会触发sbi调用
+    // li x16, 0 指令是将x16寄存器置0，这是sbi调用的约定
+    // inlateout指令的意思是
     unsafe {
         asm!(
             "li x16, 0",

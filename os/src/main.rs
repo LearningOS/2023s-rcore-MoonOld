@@ -7,12 +7,16 @@
 //!
 //! We then call [`println!`] to display `Hello, world!`.
 
+// 拒绝没注释的编译
 #![deny(missing_docs)]
 #![deny(warnings)]
+// exclude std的依赖
 #![no_std]
 #![no_main]
+//允许使用PanicInfo::message
 #![feature(panic_info_message)]
 
+// 引入log
 use core::arch::global_asm;
 use log::*;
 
@@ -22,23 +26,31 @@ mod lang_items;
 mod logging;
 mod sbi;
 
+// 引入board并标注其path
 #[path = "boards/qemu.rs"]
 mod board;
 
+// 引入入口汇编
 global_asm!(include_str!("entry.asm"));
 
 /// clear BSS segment
 pub fn clear_bss() {
     extern "C" {
+        // 使用linker提供的标记点
         fn sbss();
         fn ebss();
     }
-    (sbss as usize..ebss as usize).for_each(|a| unsafe { (a as *mut u8).write_volatile(0) });
+    (sbss as usize..ebss as usize).for_each(|a| 
+        unsafe {
+            // 指针强转 覆写0，volatile保证可见性
+            (a as *mut u8)
+            .write_volatile(0) });
 }
 
 /// the rust entry-point of os
 #[no_mangle]
 pub fn rust_main() -> ! {
+    // 这下面这些函数都是linker提供的标记点
     extern "C" {
         fn stext(); // begin addr of text segment
         fn etext(); // end addr of text segment
@@ -74,6 +86,7 @@ pub fn rust_main() -> ! {
     error!("[kernel] .bss [{:#x}, {:#x})", sbss as usize, ebss as usize);
 
     use crate::board::QEMUExit;
+    // 使用全局变量QEMU_EXIT_HANDLE调用exit_success
     crate::board::QEMU_EXIT_HANDLE.exit_success(); // CI autotest success
                                                    //crate::board::QEMU_EXIT_HANDLE.exit_failure(); // CI autoest failed
 }
